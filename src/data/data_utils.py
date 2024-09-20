@@ -4,16 +4,19 @@ import logging
 import pandas as pd
 import numpy as np
 from pathlib import Path
+from typing import List
 
 def setup_logging(level="INFO"):
-    """Set up logging configuration for Jupyter Notebook."""
+    """Set up logging configuration."""
     numeric_level = getattr(logging, level.upper(), None)
     if not isinstance(numeric_level, int):
         raise ValueError(f"Invalid log level: {level}")
     
     logger = logging.getLogger()
     if not logger.hasHandlers():
-        logging.basicConfig(level=numeric_level, format='%(asctime)s - %(levelname)s - %(message)s')
+        logging.basicConfig(
+            level=numeric_level, 
+            format='%(asctime)s - %(levelname)s - %(message)s')
     else:
         logger.setLevel(numeric_level)
 
@@ -40,7 +43,12 @@ def get_dtypes(category_columns, numeric_columns, biomarker_cols):
         dtypes[col] = np.float64
     return dtypes
 
-def load_data(raw_data_path, category_columns, numeric_columns, biomarker_pattern):
+def load_data(
+    raw_data_path: str,
+    category_columns: List[str],
+    numeric_columns: List[str],
+    biomarker_pattern: str
+) -> pd.DataFrame:
     """
     Load dataset based on column patterns and types.
     
@@ -64,13 +72,18 @@ def load_data(raw_data_path, category_columns, numeric_columns, biomarker_patter
     column_names = first_line.split(',')
 
     # Create a list of biomarker columns based on the pattern
-    biomarker_cols = [col for col in column_names if re.search(biomarker_pattern, col)]
+    biomarker_cols = [
+        col for col in column_names 
+        if re.search(biomarker_pattern, col)
+    ]
 
     # Define data types for the dataset
     dtypes = get_dtypes(category_columns, numeric_columns, biomarker_cols)
 
     # Load the full dataset with the specified data types
-    raw_df = pd.read_csv(raw_data_path, dtype=dtypes, engine='pyarrow')
+    raw_df = pd.read_csv(raw_data_path, 
+                         # dtype=dtypes, 
+                         engine='pyarrow')
 
     logging.info(f"Dataset shape: {raw_df.shape}")
 
