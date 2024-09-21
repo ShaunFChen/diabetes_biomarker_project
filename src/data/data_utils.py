@@ -63,7 +63,9 @@ def load_data(
     column_names = first_line.split(",")
 
     # Create a list of biomarker columns based on the pattern
-    biomarker_cols = [col for col in column_names if re.search(biomarker_pattern, col)]
+    biomarker_cols = [
+        col for col in column_names if re.search(biomarker_pattern, col)
+    ]
 
     # Define data types for the dataset
     dtypes = get_dtypes(categorical_columns, numeric_columns, biomarker_cols)
@@ -107,10 +109,16 @@ def iterative_imputation(
 
     # Step 2: Set default excluded columns if not provided
     if exclude_cols is None:
-        exclude_cols = ["subject_id", "incident_diabetes", "diabetes_followup_time"]
+        exclude_cols = [
+            "subject_id",
+            "incident_diabetes",
+            "diabetes_followup_time",
+        ]
 
     # Select columns for imputation (excluding specific columns)
-    cols_for_imputation = [col for col in cleaned_df.columns if col not in exclude_cols]
+    cols_for_imputation = [
+        col for col in cleaned_df.columns if col not in exclude_cols
+    ]
 
     # Prepare dataframe for imputation
     for_imputation_df = cleaned_df[cols_for_imputation].copy()
@@ -143,7 +151,9 @@ def iterative_imputation(
         imputed_df[col] = cleaned_df[col].values
 
     # Ensure subject_id is in the first column
-    cols = ["subject_id"] + [col for col in imputed_df.columns if col != "subject_id"]
+    cols = ["subject_id"] + [
+        col for col in imputed_df.columns if col != "subject_id"
+    ]
     imputed_df = imputed_df[cols]
 
     return imputed_df
