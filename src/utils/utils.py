@@ -10,8 +10,7 @@ def setup_logging(level="INFO"):
     logger = logging.getLogger()
     if not logger.hasHandlers():
         logging.basicConfig(
-            level=numeric_level,
-            format="%(asctime)s - %(levelname)s - %(message)s"
+            level=numeric_level, format="%(asctime)s - %(levelname)s - %(message)s"
         )
     else:
         logger.setLevel(numeric_level)
