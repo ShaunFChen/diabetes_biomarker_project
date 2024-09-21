@@ -6,11 +6,12 @@ def setup_logging(level="INFO"):
     numeric_level = getattr(logging, level.upper(), None)
     if not isinstance(numeric_level, int):
         raise ValueError(f"Invalid log level: {level}")
-    
+
     logger = logging.getLogger()
     if not logger.hasHandlers():
         logging.basicConfig(
-            level=numeric_level, 
-            format='%(asctime)s - %(levelname)s - %(message)s')
+            level=numeric_level,
+            format="%(asctime)s - %(levelname)s - %(message)s"
+        )
     else:
         logger.setLevel(numeric_level)
