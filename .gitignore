@@ -8,6 +8,9 @@ data/*/*.csv
 # Ignore temp archived files
 archived
 
+# Ignore CatBoost info
+notebooks/catboost_info
+
 # C extensions
 *.so
 
