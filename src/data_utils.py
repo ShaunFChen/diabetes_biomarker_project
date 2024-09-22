@@ -71,15 +71,15 @@ def load_data(
     dtypes = get_dtypes(categorical_columns, numeric_columns, biomarker_cols)
 
     # Load the full dataset with the specified data types
-    raw_df = pd.read_csv(raw_data_path, dtype=dtypes, engine="pyarrow")
+    df = pd.read_csv(raw_data_path, dtype=dtypes, engine="pyarrow")
 
-    logging.info(f"Dataset shape: {raw_df.shape}")
+    logging.info(f"Dataset shape: {df.shape}")
 
-    return raw_df
+    return df
 
 
 def iterative_imputation(
-    raw_df,
+    df,
     missing_threshold=0.3,
     exclude_cols=None,
     estimator=None,
@@ -90,22 +90,22 @@ def iterative_imputation(
     estimator, exclude columns, and reattach columns after imputation.
 
     Parameters:
-        raw_df (pd.DataFrame): Original dataframe to be imputed.
-        missing_threshold (float): Threshold for dropping columns with missing
-                                   values. Default is 0.3 (30%).
-        exclude_cols (list): Columns to exclude from imputation and to be
-                             reattached after imputation. Default is None.
-        estimator (object): Estimator to be used for imputation (e.g.,
-                            RandomForestRegressor). Default is None.
-        imputer_kwargs (dict): Additional keyword arguments for
-                               IterativeImputer.
+    df (pd.DataFrame): Original dataframe to be imputed.
+    missing_threshold (float): Threshold for dropping columns with missing
+                               values. Default is 0.3 (30%).
+    exclude_cols (list): Columns to exclude from imputation and to be
+                         reattached after imputation. Default is None.
+    estimator (object): Estimator to be used for imputation (e.g.,
+                        RandomForestRegressor). Default is None.
+    imputer_kwargs (dict): Additional keyword arguments for
+                           IterativeImputer.
 
     Returns:
         pd.DataFrame: The imputed dataframe with excluded columns reattached.
     """
     # Step 1: Drop columns with more than the threshold of missing values
-    cols_to_drop = raw_df.columns[raw_df.isnull().mean() > missing_threshold]
-    cleaned_df = raw_df.drop(cols_to_drop, axis=1).copy()
+    cols_to_drop = df.columns[df.isnull().mean() > missing_threshold]
+    cleaned_df = df.drop(cols_to_drop, axis=1).copy()
 
     # Step 2: Set default excluded columns if not provided
     if exclude_cols is None:
@@ -148,7 +148,8 @@ def iterative_imputation(
 
     # Step 7: Reattach the excluded columns back to the imputed DataFrame
     for col in exclude_cols:
-        imputed_df[col] = cleaned_df[col].values
+        if col in df.columns:
+            imputed_df[col] = df[col].values
 
     # Ensure subject_id is in the first column
     cols = ["subject_id"] + [
