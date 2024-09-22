@@ -18,7 +18,6 @@ xgboost
 xgbse
 
 shap
-fasttreeshap
 
 
 # # local package
