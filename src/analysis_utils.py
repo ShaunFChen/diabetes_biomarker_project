@@ -10,14 +10,6 @@ from statsmodels.stats.multitest import multipletests
 from adjustText import adjust_text
 
 
-# Data Preprocessing Functions
-def clean_data(df, outcome_col):
-    """
-    Clean data by removing rows with missing values for the outcome column.
-    """
-    return df.dropna(subset=[outcome_col]).copy()
-
-
 def calculate_propensity_scores(df, covariates, outcome_col):
     """
     Calculate propensity scores using logistic regression on covariates.
@@ -82,9 +74,19 @@ def plot_volcano(
     corrected_p_values,
     fc_threshold=1,
     pval_threshold=0.05,
+    output_path=None
 ):
     """
     Create a volcano plot to visualize biomarker associations.
+    
+    Parameters:
+        biomarker_cols (list): List of biomarker names.
+        log2_fold_changes (list or np.array): Log2 fold change values.
+        corrected_p_values (list or np.array): P-values after correction.
+        fc_threshold (float): Fold change threshold for significance.
+        pval_threshold (float): P-value threshold for significance.
+        output_path (str, optional): File path to save the plot as an SVG. 
+                                     Defaults to None.
     """
     neg_log_p_values = -np.log10(corrected_p_values)
     volcano_data = pd.DataFrame(
@@ -137,4 +139,9 @@ def plot_volcano(
     plt.title("Volcano Plot: Biomarker Association with Incident Diabetes")
     plt.xlabel("Log2 Fold Change (Odds Ratio)")
     plt.ylabel("-Log10(p-value)")
+
+    # Save plot as an SVG file with 300 DPI if output_path is provided
+    if output_path:
+        plt.savefig(output_path, format="svg", dpi=300)
+        
     plt.show()

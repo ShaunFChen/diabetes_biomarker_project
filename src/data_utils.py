@@ -1,3 +1,4 @@
+import os
 import re
 import logging
 import pandas as pd
@@ -20,12 +21,12 @@ def get_dtypes(categorical_columns, numeric_columns, biomarker_cols):
     Define the data types for each column in the dataset.
 
     Parameters:
-        categorical_columns (list): List of categorical column names
-        numeric_columns (list): List of numeric column names
-        biomarker_cols (list): List of biomarker column names
+        categorical_columns (list): List of categorical column names.
+        numeric_columns (list): List of numeric column names.
+        biomarker_cols (list): List of biomarker column names.
 
     Returns:
-        dict: A dictionary mapping column names to data types
+        dict: A dictionary mapping column names to data types.
     """
     dtypes = {col: "object" for col in categorical_columns}
     dtypes.update({col: np.float64 for col in numeric_columns})
@@ -44,13 +45,13 @@ def load_data(
     Load dataset based on column patterns and types.
 
     Parameters:
-        raw_data_path (str): Path to the raw data CSV file
-        categorical_columns (list): List of categorical column names
-        numeric_columns (list): List of numeric column names
-        biomarker_pattern (str): Regex pattern to identify biomarker columns
+        raw_data_path (str): Path to the raw data CSV file.
+        categorical_columns (list): List of categorical column names.
+        numeric_columns (list): List of numeric column names.
+        biomarker_pattern (str): Regex pattern to identify biomarker columns.
 
     Returns:
-        pd.DataFrame: Loaded dataset
+        pd.DataFrame: Loaded dataset.
     """
     # Check if the file exists
     check_file_exists(Path(raw_data_path))
@@ -91,12 +92,10 @@ def iterative_imputation(
 
     Parameters:
         df (pd.DataFrame): Original dataframe to be imputed.
-        missing_threshold (float): Threshold for dropping columns with missingvalues. 
+        missing_threshold (float): Missingess threshold for dropping columns. 
                                    Default is 0.3 (30%).
-        exclude_cols (list): Columns to exclude from imputation and to be reattached after imputation. 
-                             Default is None.
-        estimator (object): Estimator to be used for imputation (e.g., RandomForestRegressor).
-                            Default is None.
+        exclude_cols (list): Columns to exclude from imputation. Default is None.
+        estimator (object): Estimator for imputation. Default is None.
         imputer_kwargs (dict): Additional keyword arguments for IterativeImputer.
 
     Returns:
@@ -169,16 +168,17 @@ def impute_data(
     estimator=None,
 ):
     """
-    Load imputed data if available, otherwise perform imputation using a specified estimator.
+    Load imputed data if available, otherwise perform imputation.
 
     Parameters:
         imputed_file_path (str): Path to save/load the imputed data.
         transformed_df (pd.DataFrame): DataFrame to perform imputation on.
-        missing_threshold (float): Threshold for dropping columns with missing values.
+        missing_threshold (float): Missingess threshold for dropping columns.
         exclude_cols (list): Columns to exclude from imputation.
         imputer_kwargs (dict): Keyword arguments for the imputation process.
-        integer_cols (list): Columns that should be converted to integers (rounded).
-        estimator (object, optional): Estimator to be used for imputation (e.g., RandomForestRegressor).
+        integer_cols (list): Columns that should be round to integers.
+        estimator (object, optional): Estimator to be used for imputation 
+                                      (e.g., RandomForestRegressor).
                                       Defaults to None.
 
     Returns:
