@@ -1,24 +1,27 @@
 # Project dependencies
-pandas
-numpy<1.22
-matplotlib
-seaborn
-scikit-learn
-statsmodels
-jupyter
+pandas==2.2.3
+numpy==1.26.4
+matplotlib==3.9.2
+seaborn==0.13.2
+scikit-learn==1.5.2
+statsmodels==0.14.3
+jupyter==1.0.0
 
-pyarrow
-pytest
-black
+pyarrow==17.0.0
+pytest==8.3.3
+black==24.8.0
 
-catboost
-imbalanced-learn
-lightgbm
-xgboost
-xgbse
-shap
-fasttreeshap
+catboost==1.2.7
+imbalanced-learn==0.12.3
+lightgbm==4.5.0
+xgboost==2.1.1
+xgbse==0.3.1
+shap==0.46.0
+optuna
 
+# Temporarily removed due to unsolved conflict
+# https://github.com/linkedin/FastTreeSHAP/issues/36
+# fasttreeshap
 
 # # local package
 # -e .
