@@ -1,5 +1,5 @@
 import pytest
-from src.data.data_utils import load_data
+from src.data_utils import load_data
 
 
 def test_process_data():
