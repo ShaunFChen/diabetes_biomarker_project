@@ -49,6 +49,7 @@ def load_data(
     categorical_columns: List[str],
     numeric_columns: List[str],
     biomarker_pattern: str,
+    engine: str = 'c'  # Allow users to specify the engine
 ) -> pd.DataFrame:
     """
     Load dataset based on column patterns and types.
@@ -59,6 +60,7 @@ def load_data(
         categorical_columns (List[str]): List of categorical column names.
         numeric_columns (List[str]): List of numeric column names.
         biomarker_pattern (str): Regex pattern to identify biomarker columns.
+        engine (str, optional): Parser engine to use ('c', 'python', or 'pyarrow'). Defaults to 'c'.
 
     Returns:
         pandas.DataFrame: Loaded dataset.
@@ -82,9 +84,25 @@ def load_data(
     dtypes = get_dtypes(categorical_columns, numeric_columns, biomarker_cols)
 
     # Load the full dataset with the specified data types
-    df = pd.read_csv(
-        raw_data_path, dtype=dtypes, engine="pyarrow", index_col=id_column
-    )
+    if engine == 'pyarrow':
+        # Read without index_col and dtype
+        df = pd.read_csv(
+            raw_data_path, engine=engine
+        )
+        # Set data types
+        for col, dtype in dtypes.items():
+            if col in df.columns:
+                df[col] = df[col].astype(dtype)
+        # Set index column
+        if id_column in df.columns:
+            df.set_index(id_column, inplace=True)
+        else:
+            raise ValueError(f"Index column '{id_column}' not found in the data.")
+    else:
+        # For 'c' or 'python' engines, can use index_col and dtype directly
+        df = pd.read_csv(
+            raw_data_path, dtype=dtypes, engine=engine, index_col=id_column
+        )
 
     logging.info(f"Dataset shape: {df.shape}")
 
@@ -185,7 +203,8 @@ def impute_data(
         exclude_cols (list): Columns to exclude from imputation and reattach after imputation.
         imputer_kwargs (dict): Keyword arguments for the imputation process.
         integer_cols (list): Columns that should be rounded to integers.
-        estimator (object, optional): Estimator to be used for imputation (e.g., RandomForestRegressor). Defaults to None.
+        estimator (object, optional): Estimator to be used for imputation 
+                                      (e.g., RandomForestRegressor). Defaults to None.
 
     Returns:
         pandas.DataFrame: The imputed dataset.
@@ -235,3 +254,22 @@ def impute_data(
         X_imputed_df.to_pickle(imputed_file_path)
 
     return X_imputed_df
+
+
+def make_bins(y_pred, bins, labels):
+    """
+    Create bins for predicted probabilities using quantile-based discretization.
+
+    Args:
+        y_pred (array-like): Predicted probabilities or scores.
+        bins (int): Number of bins to split the data into.
+        labels (list): Labels for the bins.
+
+    Returns:
+        numpy.ndarray: Array of bin labels corresponding to each prediction.
+    """
+    return pd.qcut(
+        pd.Series(y_pred).rank(method='first'),
+        q=bins,
+        labels=labels
+    ).values

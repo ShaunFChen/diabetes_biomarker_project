@@ -591,7 +591,7 @@ def add_stat_annotation(ax, p_value, x1, x2, y, text_offset=0.05):
     )
 
 
-def plot_boxplot(y_test, y_pred, ax=None):
+def plot_case_control_boxplot(y_test, y_pred, ax=None):
     """
     Create a boxplot showing the probability distribution of true cases and true controls,
     and annotate it with p-value and significance.
@@ -622,11 +622,13 @@ def plot_boxplot(y_test, y_pred, ax=None):
         data=df,
         ax=ax,
         palette=["#AFCBE3", "#4F6A8A"],
-        legend=False,
     )
     ax.set_title("Probability Distribution of True Cases and Controls")
     ax.set_ylabel("Predicted Probability")
     ax.grid(False)
+
+    # # Remove the legend since hue duplicates x
+    # ax.legend_.remove()
 
     # Calculate p-value using the Mann-Whitney U test (non-parametric)
     control = df[df["Group"] == "Control"]["y_pred"]
@@ -673,7 +675,7 @@ def plot_combined(
     )  # 21 inches wide for 3 plots
 
     # First panel: Boxplot
-    plot_boxplot(y_test=y_test, y_pred=y_pred_prob, ax=axes[0])
+    plot_case_control_boxplot(y_test=y_test, y_pred=y_pred_prob, ax=axes[0])
     axes[0].set_title("Probability Distribution of Cases and Controls")
 
     # Second panel: Relative risk plot

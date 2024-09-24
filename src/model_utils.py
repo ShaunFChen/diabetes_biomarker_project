@@ -138,6 +138,10 @@ def evaluate_model_performance(PIP, X_test, y_test):
     Returns:
         array: Predicted probabilities for the positive class.
     """
+    # Validate that y_test contains only 0 and 1
+    if not set(np.unique(y_test)).issubset({0, 1}):
+        raise ValueError("y_test contains labels other than 0 and 1.")
+        
     y_pred = PIP.predict(X_test)
     y_pred_prob = PIP.predict_proba(X_test)[:, 1]
 
@@ -154,7 +158,7 @@ def evaluate_model_performance(PIP, X_test, y_test):
 
 
 def optimize_linear_model(
-    X_train, y_train, param_grid, cv, estimator, random_state=19770525
+    X_train, y_train, param_grid, cv, estimator, scoring='f1_score', random_state=19770525
 ):
     """
     Perform RFECV feature selection and hyperparameter tuning with GridSearchCV.
@@ -165,6 +169,8 @@ def optimize_linear_model(
         param_grid (dict): Hyperparameter grid for GridSearchCV.
         cv (cross-validation generator): Cross-validation method.
         estimator (estimator object): Estimator to use (e.g., LogisticRegression).
+        scoring (str, optional): Strategy to evaluate the performance of the cross-validated model on the test set.
+                                  See options at https://scikit-learn.org/dev/modules/model_evaluation.html#scoring-parameter
         random_state (int, optional): Random state for reproducibility.
 
     Returns:
@@ -182,7 +188,7 @@ def optimize_linear_model(
         estimator=rfe_cv_estimator,
         step=1,
         cv=cv,
-        scoring="f1_weighted",
+        scoring=scoring,
         n_jobs=-1,
     )
 
@@ -213,7 +219,7 @@ def optimize_linear_model(
         pipeline,
         param_grid,
         cv=cv,
-        scoring="f1_weighted",
+        scoring=scoring,
         verbose=1,
         n_jobs=-1,
     )
@@ -322,3 +328,22 @@ def optuna_optimize_xgb(X_train, y_train, random_state, n_trials=100):
     best_xgb_PIP.fit(X_train, y_train)
 
     return best_xgb_PIP
+
+
+def make_bins(y_pred, bins, labels):
+    """
+    Create bins for predicted probabilities using quantile-based discretization.
+
+    Args:
+        y_pred (array-like): Predicted probabilities or scores.
+        bins (int): Number of bins to split the data into.
+        labels (list): Labels for the bins.
+
+    Returns:
+        numpy.ndarray: Array of bin labels corresponding to each prediction.
+    """
+    return pd.qcut(
+        pd.Series(y_pred).rank(method='first'),
+        q=bins,
+        labels=labels
+    ).values

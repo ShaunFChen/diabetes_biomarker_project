@@ -1,3 +1,4 @@
+import logging
 import numpy as np
 import pandas as pd
 import statsmodels.api as sm
@@ -7,6 +8,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import NearestNeighbors
 from statsmodels.stats.multitest import multipletests
 import multiprocessing as mp
+from scipy.optimize import linear_sum_assignment
 
 
 def calculate_propensity_scores(df, covariates, outcome_col):
@@ -32,24 +34,76 @@ def calculate_propensity_scores(df, covariates, outcome_col):
     return df
 
 
-def match_propensity_scores(df, outcome_col):
+def match_propensity_scores(df, outcome_col, propensity_col='propensity_score', replace=True):
     """
     Perform nearest neighbor matching based on propensity scores.
 
     Args:
-        df (pandas.DataFrame): DataFrame containing 'propensity_score' and outcome column.
+        df (pandas.DataFrame): DataFrame containing propensity_score and outcome column.
         outcome_col (str): Name of the outcome column.
+        propensity_col (str, optional): Name of the propensity score column (Default: 'propensity_score')
+        replace (bool, optional): Whether to allow matching with replacement. Defaults to True.
 
     Returns:
         pandas.DataFrame: Matched DataFrame containing both cases and matched controls.
+
+    Notes:
+        - If replace=False, matching is done without replacement, and the number of controls must be
+          greater than or equal to the number of cases. If not, the original DataFrame is returned.
+        - If replace=True, matching is done with replacement, and controls can be matched multiple times.
     """
     cases = df[df[outcome_col] == 1].copy()
     controls = df[df[outcome_col] == 0].copy()
-    nbrs = NearestNeighbors(n_neighbors=1)
-    nbrs.fit(controls[["propensity_score"]])
-    distances, indices = nbrs.kneighbors(cases[["propensity_score"]])
-    matched_controls = controls.iloc[indices.flatten()]
-    matched_data = pd.concat([cases, matched_controls], ignore_index=True)
+
+    num_cases = len(cases)
+    num_controls = len(controls)
+
+    if not replace and num_controls < num_cases:
+        logging.info("Not enough controls to perform matching without replacement. Returning original DataFrame.")
+        return df.copy()
+
+    if replace:
+        # Matching with replacement using NearestNeighbors
+        nbrs = NearestNeighbors(n_neighbors=1)
+        nbrs.fit(controls[[propensity_col]])
+        distances, indices = nbrs.kneighbors(cases[[propensity_col]])
+        matched_controls = controls.iloc[indices.flatten()]
+    else:
+        # Matching without replacement using linear_sum_assignment
+        cost_matrix = np.abs(
+            cases[propensity_col].values[:, np.newaxis] - controls[propensity_col].values
+        )
+
+        # Solve the assignment problem
+        row_ind, col_ind = linear_sum_assignment(cost_matrix)
+
+        # Get matched controls based on the assignment
+        matched_controls = controls.iloc[col_ind]
+        cases = cases.iloc[row_ind]
+
+    # Combine matched cases and controls
+    matched_cases = cases
+    matched_controls = matched_controls
+    matched_data = pd.concat([matched_cases, matched_controls], ignore_index=True)
+
+    # Check if the matched data is balanced
+    outcome_counts = matched_data[outcome_col].value_counts()
+    if outcome_counts.nunique() != 1:
+        logging.info(f"After matching, the data is not balanced, {outcome_col} counts: {outcome_counts.to_dict()}")
+    else:
+        logging.info(f"After matching, the data is balanced, {outcome_col} counts: {outcome_counts.to_dict()}")
+
+    # Check for multiple matching of controls (only relevant when replace=True)
+    if replace:
+        control_indices = matched_controls.index
+        counts = control_indices.value_counts()
+        max_count = counts.max()
+        if max_count > 1:
+            logging.info(f"Some controls have been matched multiple times. The maximum number of times a control was matched is {max_count}.")
+    else:
+        # Since no replacement, controls are matched only once
+        pass
+        
     return matched_data
 
 
