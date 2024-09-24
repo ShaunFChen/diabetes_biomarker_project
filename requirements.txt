@@ -17,7 +17,7 @@ lightgbm==4.5.0
 xgboost==2.1.1
 xgbse==0.3.1
 shap==0.46.0
-optuna
+optuna==4.0.0
 
 # Temporarily removed due to unsolved conflict
 # https://github.com/linkedin/FastTreeSHAP/issues/36
