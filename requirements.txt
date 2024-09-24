@@ -6,6 +6,7 @@ seaborn==0.13.2
 adjustText
 scikit-learn==1.5.2
 statsmodels==0.14.3
+fastcluster
 jupyter==1.0.0
 
 pyarrow==17.0.0
