@@ -49,7 +49,7 @@ def load_data(
     categorical_columns: List[str],
     numeric_columns: List[str],
     biomarker_pattern: str,
-    engine: str = 'c'  # Allow users to specify the engine
+    engine: str = "c",  # Allow users to specify the engine
 ) -> pd.DataFrame:
     """
     Load dataset based on column patterns and types.
@@ -84,11 +84,9 @@ def load_data(
     dtypes = get_dtypes(categorical_columns, numeric_columns, biomarker_cols)
 
     # Load the full dataset with the specified data types
-    if engine == 'pyarrow':
+    if engine == "pyarrow":
         # Read without index_col and dtype
-        df = pd.read_csv(
-            raw_data_path, engine=engine
-        )
+        df = pd.read_csv(raw_data_path, engine=engine)
         # Set data types
         for col, dtype in dtypes.items():
             if col in df.columns:
@@ -97,7 +95,9 @@ def load_data(
         if id_column in df.columns:
             df.set_index(id_column, inplace=True)
         else:
-            raise ValueError(f"Index column '{id_column}' not found in the data.")
+            raise ValueError(
+                f"Index column '{id_column}' not found in the data."
+            )
     else:
         # For 'c' or 'python' engines, can use index_col and dtype directly
         df = pd.read_csv(
@@ -203,7 +203,7 @@ def impute_data(
         exclude_cols (list): Columns to exclude from imputation and reattach after imputation.
         imputer_kwargs (dict): Keyword arguments for the imputation process.
         integer_cols (list): Columns that should be rounded to integers.
-        estimator (object, optional): Estimator to be used for imputation 
+        estimator (object, optional): Estimator to be used for imputation
                                       (e.g., RandomForestRegressor). Defaults to None.
 
     Returns:
@@ -269,7 +269,5 @@ def make_bins(y_pred, bins, labels):
         numpy.ndarray: Array of bin labels corresponding to each prediction.
     """
     return pd.qcut(
-        pd.Series(y_pred).rank(method='first'),
-        q=bins,
-        labels=labels
+        pd.Series(y_pred).rank(method="first"), q=bins, labels=labels
     ).values

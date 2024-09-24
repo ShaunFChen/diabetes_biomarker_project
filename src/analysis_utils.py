@@ -34,7 +34,9 @@ def calculate_propensity_scores(df, covariates, outcome_col):
     return df
 
 
-def match_propensity_scores(df, outcome_col, propensity_col='propensity_score', replace=True):
+def match_propensity_scores(
+    df, outcome_col, propensity_col="propensity_score", replace=True
+):
     """
     Perform nearest neighbor matching based on propensity scores.
 
@@ -59,7 +61,9 @@ def match_propensity_scores(df, outcome_col, propensity_col='propensity_score', 
     num_controls = len(controls)
 
     if not replace and num_controls < num_cases:
-        logging.info("Not enough controls to perform matching without replacement. Returning original DataFrame.")
+        logging.info(
+            "Not enough controls to perform matching without replacement. Returning original DataFrame."
+        )
         return df.copy()
 
     if replace:
@@ -71,7 +75,8 @@ def match_propensity_scores(df, outcome_col, propensity_col='propensity_score', 
     else:
         # Matching without replacement using linear_sum_assignment
         cost_matrix = np.abs(
-            cases[propensity_col].values[:, np.newaxis] - controls[propensity_col].values
+            cases[propensity_col].values[:, np.newaxis]
+            - controls[propensity_col].values
         )
 
         # Solve the assignment problem
@@ -84,14 +89,20 @@ def match_propensity_scores(df, outcome_col, propensity_col='propensity_score', 
     # Combine matched cases and controls
     matched_cases = cases
     matched_controls = matched_controls
-    matched_data = pd.concat([matched_cases, matched_controls], ignore_index=True)
+    matched_data = pd.concat(
+        [matched_cases, matched_controls], ignore_index=True
+    )
 
     # Check if the matched data is balanced
     outcome_counts = matched_data[outcome_col].value_counts()
     if outcome_counts.nunique() != 1:
-        logging.info(f"After matching, the data is not balanced, {outcome_col} counts: {outcome_counts.to_dict()}")
+        logging.info(
+            f"After matching, the data is not balanced, {outcome_col} counts: {outcome_counts.to_dict()}"
+        )
     else:
-        logging.info(f"After matching, the data is balanced, {outcome_col} counts: {outcome_counts.to_dict()}")
+        logging.info(
+            f"After matching, the data is balanced, {outcome_col} counts: {outcome_counts.to_dict()}"
+        )
 
     # Check for multiple matching of controls (only relevant when replace=True)
     if replace:
@@ -99,11 +110,13 @@ def match_propensity_scores(df, outcome_col, propensity_col='propensity_score', 
         counts = control_indices.value_counts()
         max_count = counts.max()
         if max_count > 1:
-            logging.info(f"Some controls have been matched multiple times. The maximum number of times a control was matched is {max_count}.")
+            logging.info(
+                f"Some controls have been matched multiple times. The maximum number of times a control was matched is {max_count}."
+            )
     else:
         # Since no replacement, controls are matched only once
         pass
-        
+
     return matched_data
 
 

@@ -33,50 +33,50 @@ def test_check_file_exists(tmp_path):
 
 
 def test_get_dtypes():
-    categorical_columns = ['cat1', 'cat2']
-    numeric_columns = ['num1', 'num2']
-    biomarker_cols = ['bio1', 'bio2']
+    categorical_columns = ["cat1", "cat2"]
+    numeric_columns = ["num1", "num2"]
+    biomarker_cols = ["bio1", "bio2"]
 
     expected_dtypes = {
-        'cat1': 'object',
-        'cat2': 'object',
-        'num1': np.float64,
-        'num2': np.float64,
-        'bio1': np.float64,
-        'bio2': np.float64
+        "cat1": "object",
+        "cat2": "object",
+        "num1": np.float64,
+        "num2": np.float64,
+        "bio1": np.float64,
+        "bio2": np.float64,
     }
 
     result = get_dtypes(categorical_columns, numeric_columns, biomarker_cols)
     assert result == expected_dtypes
 
     # Test with overlapping columns
-    overlapping_cols = ['overlap']
+    overlapping_cols = ["overlap"]
     categorical_columns += overlapping_cols
     numeric_columns += overlapping_cols
     biomarker_cols += overlapping_cols
 
     result = get_dtypes(categorical_columns, numeric_columns, biomarker_cols)
-    assert result['overlap'] == np.float64
+    assert result["overlap"] == np.float64
 
 
-@pytest.mark.parametrize("engine", ['c', 'pyarrow'])
+@pytest.mark.parametrize("engine", ["c", "pyarrow"])
 def test_load_data(tmp_path, engine):
     # Create sample data
     data = {
-        'id': [1, 2, 3],
-        'cat1': ['a', 'b', 'c'],
-        'num1': [1.1, 2.2, 3.3],
-        'bio_abc': [0.1, 0.2, 0.3],
-        'bio_def': [0.4, 0.5, 0.6]
+        "id": [1, 2, 3],
+        "cat1": ["a", "b", "c"],
+        "num1": [1.1, 2.2, 3.3],
+        "bio_abc": [0.1, 0.2, 0.3],
+        "bio_def": [0.4, 0.5, 0.6],
     }
     df = pd.DataFrame(data)
-    raw_data_path = tmp_path / 'test_data.csv'
+    raw_data_path = tmp_path / "test_data.csv"
     df.to_csv(raw_data_path, index=False)
 
-    id_column = 'id'
-    categorical_columns = ['cat1']
-    numeric_columns = ['num1']
-    biomarker_pattern = r'^bio_.*'
+    id_column = "id"
+    categorical_columns = ["cat1"]
+    numeric_columns = ["num1"]
+    biomarker_pattern = r"^bio_.*"
 
     loaded_df = load_data(
         raw_data_path=str(raw_data_path),
@@ -84,21 +84,21 @@ def test_load_data(tmp_path, engine):
         categorical_columns=categorical_columns,
         numeric_columns=numeric_columns,
         biomarker_pattern=biomarker_pattern,
-        engine=engine
+        engine=engine,
     )
 
     # Check that the DataFrame is loaded correctly
     assert isinstance(loaded_df, pd.DataFrame)
     assert loaded_df.shape == (3, 4)
-    assert list(loaded_df.columns) == ['cat1', 'num1', 'bio_abc', 'bio_def']
-    assert loaded_df.index.name == 'id'
+    assert list(loaded_df.columns) == ["cat1", "num1", "bio_abc", "bio_def"]
+    assert loaded_df.index.name == "id"
 
     # Check that dtypes are correct
     expected_dtypes = {
-        'cat1': 'object',
-        'num1': np.float64,
-        'bio_abc': np.float64,
-        'bio_def': np.float64
+        "cat1": "object",
+        "num1": np.float64,
+        "bio_abc": np.float64,
+        "bio_def": np.float64,
     }
     actual_dtypes = {col: loaded_df[col].dtype for col in loaded_df.columns}
     for col, dtype in expected_dtypes.items():
@@ -108,12 +108,12 @@ def test_load_data(tmp_path, engine):
 def test_iterative_imputation():
     # Create a sample DataFrame with missing values
     data = {
-        'subject_id': [1, 2, 3, 4, 5],
-        'A': [1, 2, np.nan, 4, 5],
-        'B': [5, np.nan, np.nan, 8, 10],
-        'C': [np.nan, 1, 2, 3, 4],
-        'incident_diabetes': [0, 1, 0, 1, 0],
-        'diabetes_followup_time': [10, 15, 20, 25, 30]
+        "subject_id": [1, 2, 3, 4, 5],
+        "A": [1, 2, np.nan, 4, 5],
+        "B": [5, np.nan, np.nan, 8, 10],
+        "C": [np.nan, 1, 2, 3, 4],
+        "incident_diabetes": [0, 1, 0, 1, 0],
+        "diabetes_followup_time": [10, 15, 20, 25, 30],
     }
     df = pd.DataFrame(data)
 
@@ -121,22 +121,26 @@ def test_iterative_imputation():
     imputed_df = iterative_imputation(
         df,
         missing_threshold=0.3,
-        exclude_cols=['subject_id', 'incident_diabetes', 'diabetes_followup_time'],
+        exclude_cols=[
+            "subject_id",
+            "incident_diabetes",
+            "diabetes_followup_time",
+        ],
         estimator=None,
-        imputer_kwargs={'random_state': 0}
+        imputer_kwargs={"random_state": 0},
     )
 
     # Determine expected imputed columns
-    expected_imputed_cols = ['A', 'C']  # 'B' is dropped
+    expected_imputed_cols = ["A", "C"]  # 'B' is dropped
 
     # Check that missing values have been imputed in expected columns
     assert imputed_df[expected_imputed_cols].isnull().sum().sum() == 0
 
     # Check that 'B' is not in the imputed DataFrame
-    assert 'B' not in imputed_df.columns
+    assert "B" not in imputed_df.columns
 
     # Check that excluded columns are present
-    for col in ['subject_id', 'incident_diabetes', 'diabetes_followup_time']:
+    for col in ["subject_id", "incident_diabetes", "diabetes_followup_time"]:
         assert col in imputed_df.columns
         assert imputed_df[col].equals(df[col])
 
@@ -149,20 +153,20 @@ def test_iterative_imputation():
 def test_impute_data(tmp_path):
     # Create a sample DataFrame
     data = {
-        'id': [1, 2, 3, 4, 5],
-        'A': [1, 2, np.nan, 4, 5],
-        'B': [5, np.nan, np.nan, 8, 10],
-        'C': [np.nan, 1, 2, 3, 4],
-        'D': [10, 20, 30, 40, np.nan],  # Integer column
-        'exclude1': ['x', 'y', 'z', 'w', 'v']
+        "id": [1, 2, 3, 4, 5],
+        "A": [1, 2, np.nan, 4, 5],
+        "B": [5, np.nan, np.nan, 8, 10],
+        "C": [np.nan, 1, 2, 3, 4],
+        "D": [10, 20, 30, 40, np.nan],  # Integer column
+        "exclude1": ["x", "y", "z", "w", "v"],
     }
-    transformed_df = pd.DataFrame(data).set_index('id')
+    transformed_df = pd.DataFrame(data).set_index("id")
 
-    imputed_file_path = tmp_path / 'imputed_data.pkl'
+    imputed_file_path = tmp_path / "imputed_data.pkl"
     missing_threshold = 0.3
-    exclude_cols = ['exclude1']
-    imputer_kwargs = {'random_state': 0}
-    integer_cols = ['D']
+    exclude_cols = ["exclude1"]
+    imputer_kwargs = {"random_state": 0}
+    integer_cols = ["D"]
     estimator = None
 
     # Ensure the imputed file does not exist
@@ -176,22 +180,24 @@ def test_impute_data(tmp_path):
         exclude_cols=exclude_cols,
         imputer_kwargs=imputer_kwargs,
         integer_cols=integer_cols,
-        estimator=estimator
+        estimator=estimator,
     )
 
     # Determine expected imputed columns (excluding those dropped)
-    expected_imputed_cols = ['A', 'C', 'D']  # 'B' is dropped
+    expected_imputed_cols = ["A", "C", "D"]  # 'B' is dropped
 
     # Check that the imputed DataFrame has no missing values in expected columns
     assert imputed_df[expected_imputed_cols].isnull().sum().sum() == 0
 
     # Check that 'B' is not in the imputed DataFrame
-    assert 'B' not in imputed_df.columns
+    assert "B" not in imputed_df.columns
 
     # Check that integer columns are rounded
-    assert imputed_df['D'].dtype == float  # Note: remains float unless explicitly converted
-    fractional_parts = imputed_df['D'] % 1
-    assert np.all((fractional_parts == 0) | (imputed_df['D'].isnull()))
+    assert (
+        imputed_df["D"].dtype == float
+    )  # Note: remains float unless explicitly converted
+    fractional_parts = imputed_df["D"] % 1
+    assert np.all((fractional_parts == 0) | (imputed_df["D"].isnull()))
 
     # Check that excluded columns are reattached
     for col in exclude_cols:
@@ -203,7 +209,7 @@ def test_impute_data(tmp_path):
 
     # Modify the saved imputed file to test loading
     imputed_df_saved = pd.read_pickle(imputed_file_path)
-    imputed_df_saved['A'] = 999  # Modify a value
+    imputed_df_saved["A"] = 999  # Modify a value
     imputed_df_saved.to_pickle(imputed_file_path)
 
     # Load the data again
@@ -214,10 +220,8 @@ def test_impute_data(tmp_path):
         exclude_cols=exclude_cols,
         imputer_kwargs=imputer_kwargs,
         integer_cols=integer_cols,
-        estimator=estimator
+        estimator=estimator,
     )
 
     # Ensure that the loaded data matches the modified data
     assert imputed_df_loaded.equals(imputed_df_saved)
-
-

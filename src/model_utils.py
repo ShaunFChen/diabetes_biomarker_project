@@ -141,7 +141,7 @@ def evaluate_model_performance(PIP, X_test, y_test):
     # Validate that y_test contains only 0 and 1
     if not set(np.unique(y_test)).issubset({0, 1}):
         raise ValueError("y_test contains labels other than 0 and 1.")
-        
+
     y_pred = PIP.predict(X_test)
     y_pred_prob = PIP.predict_proba(X_test)[:, 1]
 
@@ -158,7 +158,13 @@ def evaluate_model_performance(PIP, X_test, y_test):
 
 
 def optimize_linear_model(
-    X_train, y_train, param_grid, cv, estimator, scoring='f1_score', random_state=19770525
+    X_train,
+    y_train,
+    param_grid,
+    cv,
+    estimator,
+    scoring="f1_score",
+    random_state=19770525,
 ):
     """
     Perform RFECV feature selection and hyperparameter tuning with GridSearchCV.
@@ -343,7 +349,5 @@ def make_bins(y_pred, bins, labels):
         numpy.ndarray: Array of bin labels corresponding to each prediction.
     """
     return pd.qcut(
-        pd.Series(y_pred).rank(method='first'),
-        q=bins,
-        labels=labels
+        pd.Series(y_pred).rank(method="first"), q=bins, labels=labels
     ).values
