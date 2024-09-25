@@ -3,10 +3,10 @@ pandas==2.2.3
 numpy==1.26.4
 matplotlib==3.9.2
 seaborn==0.13.2
-adjustText
+adjustText==1.2.0
 scikit-learn==1.5.2
 statsmodels==0.14.3
-fastcluster
+fastcluster==1.2.6
 jupyter==1.0.0
 
 pyarrow==17.0.0
