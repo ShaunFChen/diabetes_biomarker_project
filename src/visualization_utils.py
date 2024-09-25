@@ -231,13 +231,14 @@ def plot_multicollinearity_heatmap(df, output_path=None):
     plt.show()
 
 
-def plot_roc_curves(prediction_probs, y_test, output_path=None):
+def plot_roc_curves(prediction_probs, y_test, title="ROC Curve Comparison of Models", output_path=None):
     """
     Plot ROC curve comparison for multiple models.
 
     Args:
         prediction_probs (dict): Dictionary of predicted probabilities for each model.
         y_test (array-like): True binary labels.
+        title (str, optinal): Title of the figure.
         output_path (str, optional): Path to save the figure as an SVG file.
 
     Returns:
@@ -259,7 +260,7 @@ def plot_roc_curves(prediction_probs, y_test, output_path=None):
     plt.ylabel("True Positive Rate")
     plt.xlim((0, 1))
     plt.ylim((0, 1))
-    plt.title("ROC Curve Comparison of Models")
+    plt.title(title)
     plt.legend(loc="lower right")
     plt.grid(False)
 
@@ -497,7 +498,7 @@ def plot_cumulative_risk_curve(
 def plot_rel_risk(
     y_test,
     y_pred,
-    x_label="Predicted Risk Decile",
+    x_label="Predicted Risk",
     y_label="Incidence of the Outcome (%)",
     ax=None,
     s=15,
@@ -533,17 +534,32 @@ def plot_rel_risk(
     )
 
     # Generate the percentiles for x-axis
-    percentiles = np.linspace(0, bins, num=bins)
+    percentiles = np.linspace(0, 1, num=bins)
 
     # Create the plot
     if ax is None:
         fig, ax = plt.subplots(figsize=(7, 6))
 
-    ax.scatter(percentiles, grp_df["y_mean"], s=s)
+    # Plot scatter points
+    scatter = ax.scatter(percentiles, grp_df["y_mean"]*100, s=s)
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
-    ax.set_ylim([-0.05, 1])
+    ax.set_ylim([-5, 100])
     ax.grid(False)
+
+    # Identify the top bin (last bin)
+    top_bin_idx = grp_df["y_mean"].idxmax()
+    top_bin_percentile = percentiles[-1]
+    top_bin_y_mean = grp_df.loc[top_bin_idx, "y_mean"]*100
+
+# Annotate the value of y_mean for the top bin at its position
+    annotation_text = f"{top_bin_y_mean:.2f}%"
+    texts = [ax.text(top_bin_percentile, top_bin_y_mean+1, annotation_text, 
+                     fontsize=10, color='black', verticalalignment='bottom', horizontalalignment='center')]
+
+    # Adjust the text to avoid overlap
+    adjust_text(texts, ax=ax)
+
 
     plt.tight_layout()
 
@@ -682,7 +698,7 @@ def plot_combined(
     plot_rel_risk(
         y_test=y_test,
         y_pred=y_pred_prob,
-        x_label="Predicted Risk Decile",
+        x_label="Predicted Risk",
         y_label="Incidence of the Outcome (%)",
         ax=axes[1],
         s=15,

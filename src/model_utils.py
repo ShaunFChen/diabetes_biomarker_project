@@ -24,6 +24,9 @@ from optuna.pruners import HyperbandPruner
 optuna.logging.set_verbosity(optuna.logging.ERROR)
 
 from xgboost import XGBClassifier
+from lifelines import CoxPHFitter
+from lifelines.utils import concordance_index
+import matplotlib.pyplot as plt
 
 
 def prepare_data(df, outcome_column, exclude_columns=None):
@@ -146,7 +149,7 @@ def evaluate_model_performance(PIP, X_test, y_test):
     y_pred_prob = PIP.predict_proba(X_test)[:, 1]
 
     auc = roc_auc_score(y_test, y_pred_prob)
-    print(f"AUC: {auc:.2f}")
+    print(f"AUC: {auc:.3f}")
 
     print("Classification Report:")
     print(classification_report(y_test, y_pred))
@@ -351,3 +354,52 @@ def make_bins(y_pred, bins, labels):
     return pd.qcut(
         pd.Series(y_pred).rank(method="first"), q=bins, labels=labels
     ).values
+
+
+def fit_cox_model(train_data, test_data, duration_col, event_col, selected_features):
+    """
+    Fits a Cox Proportional Hazards model to the training data and evaluates it on the test data.
+
+    Args:
+        train_data (DataFrame): Training dataset that includes the duration, event, and selected features.
+        test_data (DataFrame): Test dataset that includes the duration, event, and selected features.
+        duration_col (str): The name of the column representing the follow-up time (duration).
+        event_col (str): The name of the column representing the event (1 if event occurred, 0 if censored).
+        selected_features (list): List of selected feature names to include in the model (should not include event or duration).
+
+    Returns:
+        float: The concordance index (C-index) for the test set.
+        CoxPHFitter: The fitted Cox proportional hazards model.
+    """
+    # Ensure the selected features do not include the duration or event columns
+    survival_cols = list(selected_features)
+
+    # Initialize the Cox Proportional Hazards model
+    cph = CoxPHFitter()
+
+    # Fit the Cox model on the training data, using the selected features along with duration and event
+    cph.fit(
+        train_data[survival_cols + [duration_col, event_col]], 
+        duration_col=duration_col, 
+        event_col=event_col
+    )
+
+    # Predict partial hazard ratios for the test data using only the selected features
+    predicted_hr = cph.predict_partial_hazard(test_data[survival_cols])
+
+    # Plot the model coefficients
+    cph.plot()
+    plt.title("Cox Proportional Hazards Model Coefficients")
+    plt.show()
+
+    # Calculate the concordance index (C-index) for the test set
+    c_index = concordance_index(
+        test_data[duration_col],  # Follow-up time in the test set
+        -predicted_hr,            # Negative partial hazard ratios for the test set
+        test_data[event_col]       # Event indicator for the test set
+    )
+
+    print(f"Concordance Index: {c_index:.3f}")
+
+    # Return the C-index and the fitted Cox model
+    return cph
