@@ -4,8 +4,8 @@
 This project analyzes blood biomarkers to identify those associated with the development of diabetes and builds a machine learning model to predict diabetes risk. The work involves data cleaning, statistical analysis, and model evaluation to provide insights into diabetes progression and prediction.
 
 # Requirements
-Data File: Place `test_project_data.csv` under the `data/raw` directory.
-Python Packages: Install the necessary packages listed in `requirements.txt`.
+- Data File: Place `test_project_data.csv` under the `data/raw` directory.
+- Python Packages: Install the necessary packages listed in `requirements.txt`.
 
 ```
 ├── LICENSE
