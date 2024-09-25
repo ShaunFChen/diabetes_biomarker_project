@@ -356,7 +356,9 @@ def make_bins(y_pred, bins, labels):
     ).values
 
 
-def fit_cox_model(train_data, test_data, duration_col, event_col, selected_features):
+def fit_cox_model(
+    train_data, test_data, duration_col, event_col, selected_features
+):
     """
     Fits a Cox Proportional Hazards model to the training data and evaluates it on the test data.
 
@@ -379,9 +381,9 @@ def fit_cox_model(train_data, test_data, duration_col, event_col, selected_featu
 
     # Fit the Cox model on the training data, using the selected features along with duration and event
     cph.fit(
-        train_data[survival_cols + [duration_col, event_col]], 
-        duration_col=duration_col, 
-        event_col=event_col
+        train_data[survival_cols + [duration_col, event_col]],
+        duration_col=duration_col,
+        event_col=event_col,
     )
 
     # Predict partial hazard ratios for the test data using only the selected features
@@ -395,8 +397,8 @@ def fit_cox_model(train_data, test_data, duration_col, event_col, selected_featu
     # Calculate the concordance index (C-index) for the test set
     c_index = concordance_index(
         test_data[duration_col],  # Follow-up time in the test set
-        -predicted_hr,            # Negative partial hazard ratios for the test set
-        test_data[event_col]       # Event indicator for the test set
+        -predicted_hr,  # Negative partial hazard ratios for the test set
+        test_data[event_col],  # Event indicator for the test set
     )
 
     print(f"Concordance Index: {c_index:.3f}")

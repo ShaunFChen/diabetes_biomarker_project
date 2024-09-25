@@ -231,7 +231,12 @@ def plot_multicollinearity_heatmap(df, output_path=None):
     plt.show()
 
 
-def plot_roc_curves(prediction_probs, y_test, title="ROC Curve Comparison of Models", output_path=None):
+def plot_roc_curves(
+    prediction_probs,
+    y_test,
+    title="ROC Curve Comparison of Models",
+    output_path=None,
+):
     """
     Plot ROC curve comparison for multiple models.
 
@@ -541,7 +546,7 @@ def plot_rel_risk(
         fig, ax = plt.subplots(figsize=(7, 6))
 
     # Plot scatter points
-    scatter = ax.scatter(percentiles, grp_df["y_mean"]*100, s=s)
+    scatter = ax.scatter(percentiles, grp_df["y_mean"] * 100, s=s)
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
     ax.set_ylim([-5, 100])
@@ -550,16 +555,24 @@ def plot_rel_risk(
     # Identify the top bin (last bin)
     top_bin_idx = grp_df["y_mean"].idxmax()
     top_bin_percentile = percentiles[-1]
-    top_bin_y_mean = grp_df.loc[top_bin_idx, "y_mean"]*100
+    top_bin_y_mean = grp_df.loc[top_bin_idx, "y_mean"] * 100
 
-# Annotate the value of y_mean for the top bin at its position
+    # Annotate the value of y_mean for the top bin at its position
     annotation_text = f"{top_bin_y_mean:.2f}%"
-    texts = [ax.text(top_bin_percentile, top_bin_y_mean+1, annotation_text, 
-                     fontsize=10, color='black', verticalalignment='bottom', horizontalalignment='center')]
+    texts = [
+        ax.text(
+            top_bin_percentile,
+            top_bin_y_mean + 1,
+            annotation_text,
+            fontsize=10,
+            color="black",
+            verticalalignment="bottom",
+            horizontalalignment="center",
+        )
+    ]
 
     # Adjust the text to avoid overlap
     adjust_text(texts, ax=ax)
-
 
     plt.tight_layout()
 
