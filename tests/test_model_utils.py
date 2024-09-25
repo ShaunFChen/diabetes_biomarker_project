@@ -27,7 +27,10 @@ from optuna.pruners import HyperbandPruner
 optuna.logging.set_verbosity(optuna.logging.ERROR)
 
 from xgboost import XGBClassifier
+from lifelines import CoxPHFitter
+from sklearn.datasets import make_classification
 
+import warnings
 from src.model_utils import *
 
 
@@ -179,3 +182,158 @@ def test_evaluate_model_performance_incorrect_labels():
 
     with pytest.raises(ValueError):
         evaluate_model_performance(pipeline, X_test, y_test)
+
+
+def test_optimize_linear_model():
+    # Generate synthetic data
+    np.random.seed(0)
+    n_samples = 100
+    X_train = pd.DataFrame(
+        {
+            "feature1": np.random.normal(size=n_samples),
+            "feature2": np.random.normal(size=n_samples),
+            "feature3": np.random.normal(size=n_samples),
+        }
+    )
+    y_train = np.random.binomial(1, 0.5, size=n_samples)
+
+    # Define parameter grid
+    param_grid = {
+        "estimator__C": [0.1, 1, 10],
+        "estimator__penalty": ["l1", "l2"],
+        "estimator__solver": ["liblinear"],
+    }
+
+    # Define cross-validation strategy
+    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+
+    # Define estimator
+    estimator = LogisticRegression(max_iter=1000)
+
+    # Call the function
+    best_pipeline, selected_features, best_hyperparams = optimize_linear_model(
+        X_train, y_train, param_grid, cv, estimator, scoring="f1"
+    )
+
+    # Assertions
+    assert best_pipeline is not None, "The best_pipeline should not be None."
+    assert isinstance(
+        selected_features, list
+    ), "selected_features should be a list."
+    assert isinstance(
+        best_hyperparams, dict
+    ), "best_hyperparams should be a dictionary."
+    assert (
+        len(selected_features) > 0
+    ), "At least one feature should be selected."
+    print("Test passed for optimize_linear_model.")
+
+
+def test_optuna_xgb_obj():
+    # Generate synthetic data
+    np.random.seed(0)
+    X_train, y_train = make_classification(
+        n_samples=100,
+        n_features=20,
+        n_informative=5,
+        n_redundant=5,
+        random_state=42,
+    )
+
+    # Define a trial object
+    study = optuna.create_study(direction="maximize")
+    trial = study.ask()
+
+    # Call the objective function
+    score = optuna_xgb_obj(trial, X_train, y_train, random_state=42)
+
+    # Assertions
+    assert isinstance(score, float), "The returned score should be a float."
+    print(f"Test passed for optuna_xgb_obj with score: {score}")
+
+
+def test_optuna_optimize_xgb():
+    # Generate synthetic data
+    np.random.seed(0)
+    X_train, y_train = make_classification(
+        n_samples=100,
+        n_features=20,
+        n_informative=5,
+        n_redundant=5,
+        random_state=42,
+    )
+
+    # Call the function (using a small number of trials for testing purposes)
+    best_model = optuna_optimize_xgb(
+        X_train, y_train, random_state=42, n_trials=5
+    )
+
+    # Assertions
+    assert isinstance(
+        best_model, XGBClassifier
+    ), "The returned model should be an XGBClassifier."
+    print("Test passed for optuna_optimize_xgb.")
+
+
+def test_make_bins():
+    # Generate synthetic predicted probabilities
+    y_pred = np.array([0.1, 0.4, 0.35, 0.8, 0.65, 0.2])
+
+    # Define bins and labels
+    bins = 3
+    labels = ["Low", "Medium", "High"]
+
+    # Call the function
+    binned = make_bins(y_pred, bins, labels)
+
+    # Assertions
+    assert len(binned) == len(
+        y_pred
+    ), "The length of binned output should match y_pred."
+    assert set(binned) <= set(
+        labels
+    ), "Binned output should only contain specified labels."
+    print("Test passed for make_bins.")
+
+
+def test_fit_cox_model():
+    # Generate minimal synthetic data
+    np.random.seed(0)
+    n_samples = 50
+
+    # Create training data
+    train_data = pd.DataFrame(
+        {
+            "duration": np.random.exponential(scale=10, size=n_samples),
+            "event": np.random.binomial(1, 0.7, size=n_samples),
+            "feature1": np.random.normal(size=n_samples),
+            "feature2": np.random.normal(size=n_samples),
+        }
+    )
+
+    # Create test data
+    test_data = pd.DataFrame(
+        {
+            "duration": np.random.exponential(scale=10, size=n_samples),
+            "event": np.random.binomial(1, 0.7, size=n_samples),
+            "feature1": np.random.normal(size=n_samples),
+            "feature2": np.random.normal(size=n_samples),
+        }
+    )
+
+    # Define duration, event columns, and selected features
+    duration_col = "duration"
+    event_col = "event"
+    selected_features = ["feature1", "feature2"]
+
+    # Call the fit_cox_model function
+    cph = fit_cox_model(
+        train_data, test_data, duration_col, event_col, selected_features
+    )
+
+    # Check that the returned object is an instance of CoxPHFitter
+    assert isinstance(
+        cph, CoxPHFitter
+    ), "Returned object is not a CoxPHFitter instance."
+
+    print("fit_cox_model test passed.")
