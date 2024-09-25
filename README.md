@@ -7,7 +7,7 @@ This project analyzes blood biomarkers to identify those associated with the dev
 Data File: Place `test_project_data.csv` under the `data/raw` directory.
 Python Packages: Install the necessary packages listed in `requirements.txt`.
 
----
+```
 ├── LICENSE
 ├── README.md          <- Project overview and setup instructions.
 ├── data
@@ -27,10 +27,8 @@ Python Packages: Install the necessary packages listed in `requirements.txt`.
 │
 └── src                <- Source code for data processing and model building.
 
----
+```
 
-
---------
 
 ## Contact information
 
