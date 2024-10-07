@@ -3,8 +3,9 @@ __pycache__/
 *.py[cod]
 
 # Ignore data files
-data/*/*.csv
-data/interim/
+data/raw/*.csv
+data/processed/*.pkl
+data/interim/*
 
 # Ignore temp archived files
 archived
@@ -85,9 +86,6 @@ target/
 
 # Jupyter NB Checkpoints
 .ipynb_checkpoints/
-
-# exclude data from source control by default
-/data/
 
 # Mac OS-specific storage files
 .DS_Store
