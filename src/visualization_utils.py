@@ -327,7 +327,7 @@ def plot_biomarker_skewness(dfs_dict, ref_lines=True, output_path=None):
 
     Args:
         dfs_dict (dict): Dictionary where keys are labels (e.g., 'Raw Data') and values are DataFrames.
-        ref_lines (bool): 
+        ref_lines (bool):
         output_path (str, optional): Path to save the figure as an SVG file.
 
     Returns:
@@ -346,7 +346,7 @@ def plot_biomarker_skewness(dfs_dict, ref_lines=True, output_path=None):
             label=f"{label}: {skewness_counts} ({skewness_percentage:.2f}%) skewed",
             alpha=0.6,
         )
-        
+
     if ref_lines:
         # Mark skewness boundaries
         plt.axvline(x=1, color="red", linestyle="--")
