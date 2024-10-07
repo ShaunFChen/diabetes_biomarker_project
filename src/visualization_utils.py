@@ -321,12 +321,13 @@ def plot_feature_importance(
     plt.show()
 
 
-def plot_biomarker_skewness(dfs_dict, output_path=None):
+def plot_biomarker_skewness(dfs_dict, ref_lines=True, output_path=None):
     """
     Plot the skewness distribution of biomarkers for multiple DataFrames.
 
     Args:
         dfs_dict (dict): Dictionary where keys are labels (e.g., 'Raw Data') and values are DataFrames.
+        ref_lines (bool): 
         output_path (str, optional): Path to save the figure as an SVG file.
 
     Returns:
@@ -345,18 +346,19 @@ def plot_biomarker_skewness(dfs_dict, output_path=None):
             label=f"{label}: {skewness_counts} ({skewness_percentage:.2f}%) skewed",
             alpha=0.6,
         )
-
-    # Mark skewness boundaries
-    plt.axvline(x=1, color="red", linestyle="--")
-    plt.axvline(x=-1, color="red", linestyle="--")
-    plt.text(
-        3,
-        plt.ylim()[1] * 0.95,
-        "Skewness = ±1",
-        color="red",
-        fontsize=10,
-        ha="left",
-    )
+        
+    if ref_lines:
+        # Mark skewness boundaries
+        plt.axvline(x=1, color="red", linestyle="--")
+        plt.axvline(x=-1, color="red", linestyle="--")
+        plt.text(
+            3,
+            plt.ylim()[1] * 0.95,
+            "Skewness = ±1",
+            color="red",
+            fontsize=10,
+            ha="left",
+        )
 
     plt.title("Biomarker Skewness Distribution Across DataFrames")
     plt.xlabel("Skewness")
